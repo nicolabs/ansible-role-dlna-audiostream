@@ -1,0 +1,19 @@
+---
+# Name of the users who will get access to pulseaudio.
+# This is required for users who wish to play sound into the DLNA stream.
+# An empty list will make no change.
+#pulseaudio_users: [ pi', 'me' ]
+pulseaudio_users: []
+
+# Change this to /home/<user>/.config/rygel.conf if you want to configure it for a given user.
+# By default it configures Rygel system-wide (/etc/rygel.conf).
+rygel_conf_path: /etc/rygel.conf
+
+# Name/template name of the default device and streams created by this role, as seen on the DLNA renderer.
+# See http://rygel-project.org/doc/latest/rygel.conf.html for available variables to customize them.
+dlna_audiostream_device_title: "Live audio streams on @HOSTNAME@"
+dlna_audiostream_flac_title: "FLAC audio stream"
+dlna_audiostream_mpeg_title: "MPEG audio stream"
+
+# Whether or not to redirect all system audio to the created DLNA streams
+dlna_audiostream_expose_system_audio: yes

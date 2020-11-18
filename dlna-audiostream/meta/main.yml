@@ -1,0 +1,26 @@
+galaxy_info:
+  author: nicobo
+  description: creator
+  company: nicolabs <https://nicolabs.net>
+
+  license: MIT
+
+  min_ansible_version: 2.9
+
+  platforms:
+  - name: Debian
+    versions:
+    - 10
+
+  galaxy_tags:
+      - audio
+      - dlna
+      - gstlaunch
+      - gstreamer
+      - pulseaudio
+      - raspberry
+      - raspberrypi
+      - raspbian
+      - rygel
+
+dependencies: []

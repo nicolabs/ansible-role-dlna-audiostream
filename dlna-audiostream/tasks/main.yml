@@ -1,0 +1,147 @@
+---
+- name: Install packages
+  apt:
+      name:
+          ########################
+          # PulseAudio
+          - pulseaudio
+
+          # Graphical tools ; not required for this role but might be of some interest to debug
+          #- paprefs
+          #- pavucontrol
+
+          # should be installed by default
+          # - pulseaudio-module-gsettings
+          # - pulseaudio-module-zeroconf
+
+          # Useful tools : paplay, ...
+          - pulseaudio-utils
+
+          # Allows applications using ALSA (which is teh default on debian now) to be routed to PulseAudio natively
+          # FIXME Not available on raspbian ? Maybe an alternative : https://raspberrypi.stackexchange.com/a/1544
+          # - pulseaudio-alsa
+          ########################
+
+          ########################
+          # Rygel part - https://gavv.github.io/articles/pulseaudio-under-the-hood/#dlna-and-chromecast
+          - rygel
+          # Recommended but not required ?
+          - gupnp-tools
+          ########################
+
+          ########################
+          # GstLaunch part - https://wiki.gnome.org/Projects/Rygel/Pulseaudio
+          - rygel-gst-launch
+          # This package is required or you will get the error `(rygel:21053): RygelServer-WARNING **: 24:08:14.471: rygel-http-request.vala:103: Could not create GstElement for URI gst-launch://pulsesrc%20device%3Dupnp%2Emonitor%20%21%20flacenc`
+          # See https://mail.gnome.org/archives/rygel-list/2014-March/msg00008.html
+          - gstreamer1.0-pulseaudio
+          # This one also seems to be required but appears to be already installed by the previous commands
+          #- gstreamer1.0-plugins-ugly
+          ########################
+      state: present
+
+
+- debug:
+    var: pulseaudio_users
+
+# https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/PerfectSetup/
+- name: Adds users to the 'audio' group so that they get access to pa
+  loop: "{{ pulseaudio_users }}"
+  user:
+      name: "{{ item }}"
+      append: yes
+      groups: audio
+
+
+# Note that as [pa in system mode cannot work with rygel](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/WhatIsWrongWithSystemWide/)
+# it must be [started in user mode](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/Running/)
+# From my tests it should start on-demand out of the box after installation.
+# Below is the daemon that spawn dedicated instances when required.
+- name: Make sure pulseaudio daemon is started
+  service:
+      name: pulseaudio
+      state: started
+      enabled: yes
+
+- name: Configure pulseaudio
+  lineinfile:
+    path: "/etc/pulse/default.pa"
+    line: "{{ item }}"
+    state: present
+    backup: yes
+  loop:
+      - load-module module-http-protocol-tcp
+      # GstLaunch configuration : this is the same as checking 'Make local sound devices available as DLNA/_UPnP Media Server' in paprefs
+      # See https://gitlab.freedesktop.org/pulseaudio/paprefs/-/blob/54c99e5206dad7dcc76e40a4e17d2e3a452590a0/src/paprefs.cc
+      - load-module module-rygel-media-server
+      # GstLaunch configuration : this is the same as checking 'Create separate audio device for DLNA/UPnP media streaming' in paprefs
+      # See https://gitlab.freedesktop.org/pulseaudio/paprefs/-/blob/54c99e5206dad7dcc76e40a4e17d2e3a452590a0/src/paprefs.cc
+      - load-module module-null-sink sink_name=upnp format=s16be channels=2 rate=44100 sink_properties="device.description='DLNA/UPnP Streaming' device.bus='network' device.icon_name='network-server'"
+  register: module_http
+
+- name: Restart pulseaudio daemon if config changed
+  command: systemctl --user restart pulseaudio.service
+  when: module_http.changed
+
+
+# https://wiki.gnome.org/Projects/Rygel/Pulseaudio
+- name: Configure Rygel
+  ini_file:
+      path: "{{ rygel_conf_path }}"
+      section: "{{ item.section }}"
+      option: "{{ item.option }}"
+      value: "{{ item.value }}"
+      no_extra_spaces: yes
+      backup: yes
+  loop:
+      # Still required ?
+      - section: External
+        option: enabled
+        value: "true"
+      # Still required ?
+      - section: org.gnome.UPnP.MediaServer2.PulseAudio
+        option: enabled
+        value: "true"
+      # GstLaunch part - feel free to customize / add more streams - see https://wiki.gnome.org/Projects/Rygel/Pulseaudio#gst-launch
+      - section: GstLaunch
+        option: enabled
+        value: "true"
+      - section: GstLaunch
+        option: title
+        value: "{{ dlna_audiostream_device_title }}"
+      - section: GstLaunch
+        option: launch-items
+        # If you add new streams don't forget to add them to this line
+        value: "myaudioflac;myaudiompeg"
+      # GstLaunch part : flac-encoded stream - feel free to customize
+      - section: GstLaunch
+        option: myaudioflac-title
+        value: "{{ dlna_audiostream_flac_title }}"
+      - section: GstLaunch
+        option: myaudioflac-mime
+        value: "audio/flac"
+      - section: GstLaunch
+        option: myaudioflac-launch
+        value: "pulsesrc device=upnp.monitor ! flacenc"
+      # GstLaunch part : mpeg-encoded stream - feel free to customize
+      - section: GstLaunch
+        option: myaudiompeg-title
+        value: "{{ dlna_audiostream_mpeg_title }}"
+      - section: GstLaunch
+        option: myaudiompeg-mime
+        value: "audio/mpeg"
+      - section: GstLaunch
+        option: myaudiompeg-launch
+        value: "pulsesrc device=upnp.monitor ! audio/x-raw,channels=2 ! lamemp3enc target=quality quality=6"
+
+# TODO Allow preventing Rygel from exporting all media by default
+
+# TODO Start Rygel at boot
+
+
+# TODO Redirect system sound to the upnp sink
+# # https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/PerfectSetup/#alsaapplications
+# - name: Configure alsa to use pulse by default
+#   template:
+#       src: templates/etc/asound.conf
+#       dest: /etc/asound.conf
