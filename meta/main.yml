@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: dlna_audiostream
   author: nicobo
   description: creator
   company: nicolabs <https://nicolabs.net>
