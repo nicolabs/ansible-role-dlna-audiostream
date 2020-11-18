@@ -11,7 +11,7 @@ galaxy_info:
   platforms:
   - name: Debian
     versions:
-    - 10
+    - buster
 
   galaxy_tags:
       - audio

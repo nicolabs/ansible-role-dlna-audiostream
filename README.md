@@ -1,5 +1,5 @@
-Role Name
-=========
+dlna_audiostream
+================
 
 **⚠ NOT RELEASED YET - VERY INCOMPLETE & NOT TESTED ⚠**
 
