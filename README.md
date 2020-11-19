@@ -92,4 +92,4 @@ MIT
 Author Information
 ------------------
 
-https//nicolabs.net
+[nicolabs.net](https//nicolabs.net)
