@@ -80,9 +80,23 @@
   register: module_http
 
 - name: Restart pulseaudio daemon if config changed
-  command: systemctl --user restart pulseaudio.service
+  systemd:
+      name: pulseaudio.service
+      scope: user
+      state: restarted
   when: module_http.changed
 
+
+# Because the `ini_file` module used in a loop and `backup:yes` would create a backup for each iteration... :-(
+- name: Backup Rygel config file (1/3 - tests if file exists)
+  stat:
+    path: "{{ rygel_conf_path }}"
+  register: rygel_conf
+- name: Backup Rygel config file (2/3 - reads initial file content)
+  slurp:
+    src: "{{ rygel_conf_path }}"
+  register: rygel_conf_backup
+  when: rygel_conf.stat.exists
 
 # https://wiki.gnome.org/Projects/Rygel/Pulseaudio
 - name: Configure Rygel
@@ -92,7 +106,7 @@
       option: "{{ item.option }}"
       value: "{{ item.value }}"
       no_extra_spaces: yes
-      backup: yes
+      backup: no
   loop:
       # Still required ?
       - section: External
@@ -133,6 +147,14 @@
       - section: GstLaunch
         option: myaudiompeg-launch
         value: "pulsesrc device=upnp.monitor ! audio/x-raw,channels=2 ! lamemp3enc target=quality quality=6"
+  register: rygel_conf
+
+# Because the `ini_file` module used in a loop and `backup:yes` would create a backup for each iteration... :-(
+- name: Backup Rygel config file (3/3 - saves the temporary backup only if rygel.conf has changed)
+  copy:
+      dest: "{{ rygel_conf }}.{{ 9999 | random }}.{{ '%Y-%m-%d@%H:%M:%S~' | strftime }}"
+      content: "{{ rygel_conf_backup['contents'] | b64decode }}"
+  when: rygel_conf.changed
 
 # TODO Allow preventing Rygel from exporting all media by default
 
