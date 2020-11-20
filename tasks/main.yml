@@ -153,7 +153,7 @@
 - name: Backup Rygel config file (3/3 - saves the temporary backup only if rygel.conf has changed)
   copy:
       dest: "{{ rygel_conf }}.{{ 9999 | random }}.{{ '%Y-%m-%d@%H:%M:%S~' | strftime }}"
-      content: "{{ rygel_conf_backup['contents'] | b64decode }}"
+      content: "{{ rygel_conf_backup.content | b64decode }}"
   when: rygel_conf.changed
 
 # TODO Allow preventing Rygel from exporting all media by default
