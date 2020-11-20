@@ -152,7 +152,7 @@
 # Because the `ini_file` module used in a loop and `backup:yes` would create a backup for each iteration... :-(
 - name: Backup Rygel config file (3/3 - saves the temporary backup only if rygel.conf has changed)
   copy:
-      dest: "{{ rygel_conf }}.{{ 9999 | random }}.{{ '%Y-%m-%d@%H:%M:%S~' | strftime }}"
+      dest: "{{ rygel_conf_path }}.{{ 9999 | random }}.{{ '%Y-%m-%d@%H:%M:%S~' | strftime }}"
       content: "{{ rygel_conf_backup.content | b64decode }}"
   when: rygel_conf.changed
 
