@@ -4,8 +4,8 @@ Description=Rygel DLNA server
 After=syslog.target
 
 [Service]
-User=rygel
-Group=rygel
+User={{ rygel_user }}
+Group={{ rygel_group }}
 ExecStart=/usr/bin/rygel
 # ExecStart=/usr/bin/wrap-dbus /usr/bin/rygel
 
