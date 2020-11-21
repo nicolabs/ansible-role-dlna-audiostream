@@ -158,7 +158,23 @@
 
 # TODO Allow preventing Rygel from exporting all media by default
 
-# TODO Start Rygel at boot
+
+########################
+# Start Rygel at boot
+
+- name: Create rygel service file
+  template:
+      src: templates/etc/systemd/system/rygel.service
+      dest: /etc/systemd/system/rygel.service
+
+- name: Register rygel service
+  systemd:
+      name: rygel
+      state: started
+      enabled: yes
+
+#
+########################
 
 
 # TODO Redirect system sound to the upnp sink

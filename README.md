@@ -78,7 +78,11 @@ References
 ----------
 
 - [PulseAudio main documentation](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/)
+- [Rygel - PulseAudio](https://wiki.gnome.org/Projects/Rygel/Pulseaudio)
+- [Rygel - configuration](http://rygel-project.org/doc/latest/rygel.conf.html)
+- [PulseAudio under the hood](https://gavv.github.io/articles/pulseaudio-under-the-hood/#dlna-and-chromecast)
 - [github.com/BaReinhard/Super-Simple-Raspberry-Pi-Audio-Receiver-Install](https://github.com/BaReinhard/Super-Simple-Raspberry-Pi-Audio-Receiver-Install/blob/master/init.d/pulseaudio)
+- [StackExchange Raspberry Pi - How to get PulseAudio running?](https://raspberrypi.stackexchange.com/a/1544)
 
 
 
