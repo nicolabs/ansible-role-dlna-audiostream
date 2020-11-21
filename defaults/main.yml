@@ -8,7 +8,9 @@ pulseaudio_users: []
 # Change this to /home/<user>/.config/rygel.conf if you want to configure it for a given user.
 # By default it configures Rygel system-wide (/etc/rygel.conf).
 rygel_conf_path: /etc/rygel.conf
+# Start rygel service as this user
 rygel_user: root
+# Start rygel service with this group
 rygel_group: root
 
 # Name/template name of the default device and streams created by this role, as seen on the DLNA renderer.
